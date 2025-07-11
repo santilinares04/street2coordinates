@@ -1,0 +1,45 @@
+
+import arcpy
+
+# Pfade
+streets = r"path\to\streets.shp"  # OSM-Daten mit Straßennamen
+input_table = r"path\to\street_pairs.csv"  # Tabelle mit str1, str2
+output_points = r"path\to\output.gdb\intersections"
+
+# Temp-Layer erzeugen
+arcpy.MakeFeatureLayer_management(streets, "streets_lyr")
+
+# Ergebnis-Feature-Class
+arcpy.CreateFeatureclass_management(out_path=r"path\to\output.gdb", out_name="intersections", geometry_type="POINT")
+
+with arcpy.da.InsertCursor(output_points, ["SHAPE@", "str1", "str2"]) as cursor:
+    with arcpy.da.SearchCursor(input_table, ["str1", "str2"]) as rows:
+        for str1, str2 in rows:
+            query1 = f"name = '{str1}'"
+            query2 = f"name = '{str2}'"
+            
+            # Selektiere Linien für beide Straßen
+            arcpy.SelectLayerByAttribute_management("streets_lyr", "NEW_SELECTION", query1)
+            arcpy.CopyFeatures_management("streets_lyr", "tmp1")
+
+            arcpy.SelectLayerByAttribute_management("streets_lyr", "NEW_SELECTION", query2)
+            arcpy.CopyFeatures_management("streets_lyr", "tmp2")
+
+            # Finde Schnittpunkte (nur Linien behalten, die sich schneiden)
+            arcpy.analysis.Intersect(["tmp1", "tmp2"], "tmp_intersect", output_type="POINT")
+
+            with arcpy.da.SearchCursor("tmp_intersect", ["SHAPE@"]) as int_pts:
+                for pt in int_pts:
+                    cursor.insertRow([pt[0], str1, str2])
+
+# Aufräumen
+arcpy.Delete_management("tmp1")
+arcpy.Delete_management("tmp2")
+arcpy.Delete_management("tmp_intersect")
+
+
+
+
+
+No file chosenNo file chosen
+ChatGPT can make mistakes. Check important info. See Cookie Preferences.
