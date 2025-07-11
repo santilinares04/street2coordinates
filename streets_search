@@ -37,9 +37,3 @@ arcpy.Delete_management("tmp1")
 arcpy.Delete_management("tmp2")
 arcpy.Delete_management("tmp_intersect")
 
-
-
-
-
-No file chosenNo file chosen
-ChatGPT can make mistakes. Check important info. See Cookie Preferences.
